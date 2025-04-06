@@ -71,7 +71,7 @@ Create a `.env` file in the root directory with the following content:
 
 ```
 GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
-PROJECT_ID=sapient-torch-456008
+PROJECT_ID=YOUR_PROJECT_ID
 MODEL_ID=your-automl-model-id
 REGION=us-central1
 ```
