@@ -29,8 +29,7 @@ jobs:
               npm run build
             fi
 
-      - setup_remote_docker:
-          version: 20.10.18
+      - setup_remote_docker: {}  # ✅ Removed version field
 
       - run:
           name: Docker build image
