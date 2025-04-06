@@ -1,15 +1,16 @@
 {
   "name": "face-detection-gender",
   "version": "1.0.0",
-  "description": "Face detection and gender recognition with Google Cloud Vision API",
+  "description": "Face detection and gender recognition using Google Cloud Vision API and Express.js",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint .",
+    "test": "echo \"No tests yet\" && exit 0"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Your Name",
+  "license": "MIT",
   "dependencies": {
     "@google-cloud/vision": "^3.1.2",
     "canvas": "^2.11.2",
@@ -19,5 +20,8 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.22"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

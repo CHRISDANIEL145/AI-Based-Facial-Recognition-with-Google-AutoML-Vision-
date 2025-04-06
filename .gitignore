@@ -32,3 +32,4 @@ venv/
 *.pkl
 *.h5
 *.ckpt
+*.json
