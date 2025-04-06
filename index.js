@@ -153,7 +153,7 @@ async function detectFaceAttributes(imagePath) {
       annotatedImage: annotatedImagePath ? `/captures/${path.basename(annotatedImagePath)}` : null
     };
   } catch (err) {
-    console.error('Error in face detection:', err);
+    console.error('Error in face detection,:', err);
     throw err;
   }
 }
