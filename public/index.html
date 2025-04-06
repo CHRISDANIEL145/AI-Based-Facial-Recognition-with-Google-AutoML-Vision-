@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Face Gender Recognition</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        .camera-container, .results-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .camera-view {
+            position: relative;
+            width: 640px;
+            height: 480px;
+            background-color: #000;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        #canvas {
+            display: none;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        button {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #3367d6;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        #startBtn {
+            background-color: #0f9d58;
+        }
+        
+        #stopBtn {
+            background-color: #db4437;
+        }
+        
+        #captureBtn {
+            background-color: #4285f4;
+        }
+        
+        .results-container {
+            width: 640px;
+        }
+        
+        .result-image {
+            max-width: 100%;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .face-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #4285f4;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .face-info h3 {
+            margin-top: 0;
+            color: #4285f4;
+        }
+        
+        .face-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .face-info td {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .face-info td:first-child {
+            font-weight: bold;
+            width: 40%;
+        }
+        
+        .real-time-box {
+            padding: 15px;
+            background-color: #e8f0fe;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4285f4;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-active {
+            background-color: #0f9d58;
+        }
+        
+        .status-inactive {
+            background-color: #db4437;
+        }
+        
+        .status-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .mode-toggle {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .mode-toggle label {
+            margin-right: 10px;
+        }
+        
+        #status {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Live Face Gender Recognition</h1>
+    
+    <div class="container">
+        <div class="camera-container">
+            <div class="mode-toggle">
+                <label>
+                    <input type="radio" name="mode" value="snapshot" checked> Snapshot Mode
+                </label>
+                <label>
+                    <input type="radio" name="mode" value="realtime"> Real-time Mode
+                </label>
+            </div>
+            
+            <div class="camera-view">
+                <video id="video" playsinline autoplay muted></video>
+                <canvas id="canvas"></canvas>
+            </div>
+            
+            <div id="status">
+                Camera: <span class="status-indicator status-inactive"></span>
+                <span class="status-label">Inactive</span>
+            </div>
+            
+            <div class="controls">
+                <button id="startBtn">Start Camera</button>
+                <button id="stopBtn" disabled>Stop Camera</button>
+                <button id="captureBtn" disabled>Capture & Analyze</button>
+            </div>
+            
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Processing image...</p>
+            </div>
+        </div>
+        
+        <div class="results-container">
+            <h2>Recognition Results</h2>
+            
+            <div class="real-time-box">
+                <h3>Real-time Analysis</h3>
+                <p id="realTimeStatus">Not active. Switch to real-time mode to enable.</p>
+            </div>
+            
+            <div id="resultsOutput">
+                <p>Capture an image to see detection results.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // DOM elements
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const statusIndicator = document.querySelector('.status-indicator');
+        const statusLabel = document.querySelector('.status-label');
+        const loadingDiv = document.querySelector('.loading');
+        const resultsOutput = document.getElementById('resultsOutput');
+        const realTimeStatus = document.getElementById('realTimeStatus');
+        const modeRadios = document.getElementsByName('mode');
+        
+        // Variables
+        let stream = null;
+        let isRealTimeMode = false;
+        let wsConnection = null;
+        let realTimeAnalysisActive = false;
+        let analysisInterval = null;
+        
+        // Setup WebSocket for real-time analysis
+        function setupWebSocket() {
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}`;
+            
+            wsConnection = new WebSocket(wsUrl);
+            
+            wsConnection.onopen = () => {
+                console.log('WebSocket connection established');
+                realTimeStatus.textContent = 'Connected and ready for real-time analysis';
+            };
+            
+            wsConnection.onclose = () => {
+                console.log('WebSocket connection closed');
+                realTimeStatus.textContent = 'Real-time analysis disconnected';
+                realTimeAnalysisActive = false;
+            };
+            
+            wsConnection.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                realTimeStatus.textContent = 'Error in real-time analysis connection';
+                realTimeAnalysisActive = false;
+            };
+            
+            wsConnection.onmessage = (event) => {
+                try {
+                    const result = JSON.parse(event.data);
+                    displayRealTimeResults(result);
+                } catch (error) {
+                    console.error('Error processing real-time result:', error);
+                }
+            };
+        }
+        
+        // Display real-time detection results
+        function displayRealTimeResults(result) {
+            if (result.error) {
+                realTimeStatus.textContent = `Error: ${result.error}`;
+                return;
+            }
+            
+            realTimeStatus.innerHTML = `
+                <strong>Detected ${result.totalFaces} face(s)</strong><br>
+            `;
+            
+            if (result.faces && result.faces.length > 0) {
+                result.faces.forEach(face => {
+                    realTimeStatus.innerHTML += `
+                        Face #${face.faceId}: ${face.gender} (Confidence: ${Math.round(face.confidence * 100)}%)<br>
+                    `;
+                });
+            }
+        }
+        
+        // Start the camera
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                
+                // Update UI
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                captureBtn.disabled = false;
+                statusIndicator.classList.remove('status-inactive');
+                statusIndicator.classList.add('status-active');
+                statusLabel.textContent = 'Active';
+                
+                // Setup WebSocket for real-time analysis
+                setupWebSocket();
+                
+                // Check mode
+                updateAnalysisMode();
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                alert('Could not access camera. Please check permissions and try again.');
+            }
+        }
+        
+        // Stop the camera
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                stream = null;
+            }
+            
+            // Clean up real-time analysis
+            if (wsConnection) {
+                wsConnection.close();
+                wsConnection = null;
+            }
+            
+            if (analysisInterval) {
+                clearInterval(analysisInterval);
+                analysisInterval = null;
+            }
+            
+            realTimeAnalysisActive = false;
+            
+            // Update UI
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            captureBtn.disabled = true;
+            statusIndicator.classList.remove('status-active');
+            statusIndicator.classList.add('status-inactive');
+            statusLabel.textContent = 'Inactive';
+            realTimeStatus.textContent = 'Not active. Camera is off.';
+        }
+        
+        // Capture image and send for analysis
+        function captureAndAnalyze() {
+            if (!stream) return;
+            
+            // Set canvas dimensions to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw video frame to canvas
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert canvas to blob
+            canvas.toBlob(async (blob) => {
+                // Create form data with the image
+                const formData = new FormData();
+                formData.append('image', blob, 'capture.jpg');
+                
+                // Show loading state
+                loadingDiv.style.display = 'block';
+                
+                try {
+                    // Send to server for analysis
+                    const response = await fetch('/analyze', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Server returned an error');
+                    }
+                    
+                    const result = await response.json();
+                    displayResults(result);
+                } catch (err) {
+                    console.error('Error analyzing image:', err);
+                    resultsOutput.innerHTML = `<p class="error">Error analyzing image: ${err.message}</p>`;
+                } finally {
+                    // Hide loading state
+                    loadingDiv.style.display = 'none';
+                }
+            }, 'image/jpeg', 0.9);
+        }
+        
+        // Display analysis results
+        function displayResults(result) {
+            if (!result || result.error) {
+                resultsOutput.innerHTML = `<p class="error">Error: ${result?.error || 'Unknown error'}</p>`;
+                return;
+            }
+            
+            let html = '';
+            
+            if (result.annotatedImage) {
+                html += `
+                    <img src="${result.annotatedImage}?${new Date().getTime()}" 
+                         alt="Analyzed Image" class="result-image">
+                `;
+            }
+            
+            html += `<h3>Detected ${result.totalFaces} face(s)</h3>`;
+            
+            if (result.totalFaces === 0) {
+                html += '<p>No faces were detected in the image.</p>';
+            } else {
+                result.faces.forEach(face => {
+                    html += `
+                        <div class="face-info">
+                            <h3>Face #${face.faceId}</h3>
+                            <table>
+                                <tr>
+                                    <td>Gender:</td>
+                                    <td>${face.gender}</td>
+                                </tr>
+                                <tr>
+                                    <td>Confidence:</td>
+                                    <td>${Math.round(face.confidence * 100)}%</td>
+                                </tr>
+                                <tr>
+                                    <td>Emotions:</td>
+                                    <td>
+                                        Joy: ${Math.round(face.emotions.joy * 100)}%<br>
+                                        Anger: ${Math.round(face.emotions.anger * 100)}%<br>
+                                        Sorrow: ${Math.round(face.emotions.sorrow * 100)}%<br>
+                                        Surprise: ${Math.round(face.emotions.surprise * 100)}%
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    `;
+                });
+            }
+            
+            resultsOutput.innerHTML = html;
+        }
+        
+        // Real-time analysis
+        function startRealTimeAnalysis() {
+            if (!wsConnection || wsConnection.readyState !== WebSocket.OPEN) {
+                realTimeStatus.textContent = 'Connecting to real-time analysis service...';
+                setupWebSocket();
+            }
+            
+            realTimeAnalysisActive = true;
+            realTimeStatus.textContent = 'Real-time analysis active...';
+            
+            // Set interval for sending frames
+            if (!analysisInterval) {
+                analysisInterval = setInterval(() => {
+                    if (realTimeAnalysisActive && wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+                        sendFrameForAnalysis();
+                    }
+                }, 1000); // Send a frame every second
+            }
+        }
+        
+        // Stop real-time analysis
+        function stopRealTimeAnalysis() {
+            realTimeAnalysisActive = false;
+            
+            if (analysisInterval) {
+                clearInterval(analysisInterval);
+                analysisInterval = null;
+            }
+            
+            realTimeStatus.textContent = 'Real-time analysis paused. Switch to real-time mode to enable.';
+        }
+        
+        // Send a frame for real-time analysis
+        function sendFrameForAnalysis() {
+            if (!stream || !wsConnection || wsConnection.readyState !== WebSocket.OPEN) return;
+            
+            // Draw current video frame to canvas
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Get the image as data URL
+            const imageData = canvas.toDataURL('image/jpeg', 0.7);
+            
+            // Send the image data over WebSocket
+            wsConnection.send(imageData);
+        }
+        
+        // Update analysis mode based on radio selection
+        function updateAnalysisMode() {
+            if (!stream) return;
+            
+            isRealTimeMode = Array.from(modeRadios).find(radio => radio.checked).value === 'realtime';
+            
+            if (isRealTimeMode) {
+                startRealTimeAnalysis();
+                captureBtn.disabled = true;
+            } else {
+                stopRealTimeAnalysis();
+                captureBtn.disabled = false;
+            }
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startCamera);
+        stopBtn.addEventListener('click', stopCamera);
+        captureBtn.addEventListener('click', captureAndAnalyze);
+        
+        // Mode toggle listeners
+        Array.from(modeRadios).forEach(radio => {
+            radio.addEventListener('change', updateAnalysisMode);
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            if (wsConnection) {
+                wsConnection.close();
+            }
+        });
+    </script>
+</body>
+</html>

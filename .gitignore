@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Visual Studio Code
+.vscode/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.venv/
+env/
+venv/
+*.env
+
+# Logs
+*.log
+
+# AutoML or model generated files
+*.tflite
+*.pb
+*.pkl
+*.h5
+*.ckpt
