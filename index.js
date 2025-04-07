@@ -11,7 +11,7 @@ const { exec } = require('child_process');
 
 // Create a Vision client
 const client = new vision.ImageAnnotatorClient({
-  keyFilename: 'ADD_YOUR_API_FROM_GOOGLE_CLOUD',
+  keyFilename: 'sapient-torch-456008-q9-6bc6576e3863.json',
 });
 
 // Initialize express application
