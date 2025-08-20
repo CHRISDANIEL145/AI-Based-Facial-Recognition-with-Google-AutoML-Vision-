@@ -463,8 +463,8 @@ npm-debug.log*
 This project is licensed under the MIT License.
 
 ## Author
-**ARAVINDAN M**
 
 **CHRIS DANIEL**  
 GitHub: [CHRISDANIEL145](https://github.com/CHRISDANIEL145)
-GitHub: [ARAVINDAN20](https://github.com/ARAVINDAN20)
+
+
